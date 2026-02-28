@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quit-Queue | Student Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-deep: #0a1628;
+      --blue-primary: #1a56db;
+      --blue-light: #3b82f6;
+      --blue-glow: #60a5fa;
+      --white: #ffffff;
+      --gray: #94a3b8;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--blue-deep);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(26,86,219,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,86,219,0.07) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(50px); }
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+      animation: orbFloat 8s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 400px; height: 400px; background: var(--blue-primary); top: -100px; left: -100px; }
+    .orb-2 { width: 300px; height: 300px; background: var(--blue-glow); bottom: -50px; right: -50px; animation-delay: -4s; }
+
+    @keyframes orbFloat {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(30px, 30px) scale(1.1); }
+    }
+
+    .card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 440px;
+      margin: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 48px 44px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 60px rgba(26,86,219,0.2), 0 30px 60px rgba(0,0,0,0.4);
+      animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    @keyframes cardIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 36px;
+    }
+
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-glow));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px rgba(26,86,219,0.5);
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span { color: var(--blue-glow); }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--gray);
+      font-size: 14px;
+      margin-bottom: 36px;
+    }
+
+    .steps {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 30px;
+    }
+
+    .step-dot {
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.15);
+      flex: 1;
+      transition: background 0.4s;
+    }
+
+    .step-dot.active { background: var(--blue-light); }
+
+    .form-group { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+
+    .input-wrap { position: relative; }
+
+    .prefix {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--blue-glow);
+      font-size: 14px;
+      font-weight: 500;
+      pointer-events: none;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      padding-right: 10px;
+    }
+
+    input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 14px 16px 14px 70px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.2); font-size: 14px; }
+
+    input:focus {
+      border-color: var(--blue-light);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .otp-grid { display: flex; gap: 10px; }
+
+    .otp-grid input {
+      flex: 1;
+      padding: 14px 8px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0;
+      border-radius: 12px;
+    }
+
+    .otp-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .timer { font-size: 12px; color: var(--gray); }
+    .timer span { color: var(--blue-glow); font-weight: 500; }
+
+    .resend-btn {
+      font-size: 12px;
+      color: var(--blue-glow);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      opacity: 0.4;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .resend-btn.active { opacity: 1; pointer-events: all; }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-light));
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 8px 24px rgba(26,86,219,0.4);
+    }
+
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(26,86,219,0.5); }
+    .btn:active { transform: translateY(0); }
+
+    #otp-step { display: none; animation: fadeIn 0.4s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--gray);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      padding: 0;
+      transition: color 0.2s;
+    }
+    .back-btn:hover { color: var(--white); }
+
+    .phone-display { font-size: 13px; color: var(--gray); margin-bottom: 24px; }
+    .phone-display strong { color: var(--white); }
+
+    .success-screen {
+      display: none;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .success-icon {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, #10b981, #34d399);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 30px rgba(16,185,129,0.4);
+      animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .success-screen h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .success-screen p { color: var(--gray); font-size: 14px; }
+
+    .divider { text-align: center; color: var(--gray); font-size: 12px; margin: 20px 0 0; }
+    .divider a { color: var(--blue-glow); text-decoration: none; font-weight: 500; }
+
+    .toast {
+      position: fixed;
+      top: 20px; left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: rgba(26,86,219,0.9);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-size: 14px;
+      z-index: 100;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="toast" id="toast"></div>
+
+<div class="card">
+
+  <!-- LOGO -->
+  <div class="logo-wrap">
+    <div class="logo-icon">🍽️</div>
+    <div class="logo-text">Quit<span>Queue</span></div>
+  </div>
+
+  <!-- STEP 1: PHONE -->
+  <div id="phone-step">
+    <div class="steps">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+    </div>
+    <h1>Welcome back 👋</h1>
+    <div class="form-group">
+  <label>Your Full Name</label>
+  <div class="input-wrap">
+    <input type="text" id="name-input" placeholder="Enter your full name"
+      style="padding-left:16px; letter-spacing:0; font-size:15px;" />
+  </div>
+</div>
+    <p class="subtitle">Enter your registered phone number to continue</p>
+    <div class="form-group">
+      <label>Mobile Number</label>
+      <div class="input-wrap">
+        <span class="prefix">+91</span>
+        <input type="tel" id="phone-input" maxlength="10" placeholder="Enter 10-digit number" />
+      </div>
+    </div>
+
+    <button class="btn" onclick="sendOTP()">Send OTP →</button>
+    <p class="divider">Canteen staff? <a href="staff-login.html">Staff Login</a></p>
+  </div>
+
+  <!-- STEP 2: OTP -->
+  <div id="otp-step">
+    <div class="steps">
+      <div class="step-dot active"></div>
+      <div class="step-dot active"></div>
+    </div>
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <h1>Verify OTP 🔐</h1>
+    <p class="phone-display">OTP sent to <strong id="phone-show"></strong></p>
+
+    <div class="form-group">
+      <label>Enter 4-digit OTP</label>
+      <div class="otp-grid">
+        <input type="tel" maxlength="1" class="otp-box" oninput="otpMove(this, 0)" />
+        <input type="tel" maxlength="1" class="otp-box" oninput="otpMove(this, 1)" />
+        <input type="tel" maxlength="1" class="otp-box" oninput="otpMove(this, 2)" />
+        <input type="tel" maxlength="1" class="otp-box" oninput="otpMove(this, 3)" />
+      </div>
+      <div class="otp-meta">
+        <div class="timer">Resend in <span id="countdown">30</span>s</div>
+        <button class="resend-btn" id="resend-btn" onclick="resendOTP()">Resend OTP</button>
+      </div>
+    </div>
+
+    <button class="btn" onclick="verifyOTP()">Verify & Login →</button>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">✓</div>
+    <h2>Login Successful!</h2>
+    <p>Redirecting you to the menu...</p>
+  </div>
+
+</div>
+
+<script>
+  let timerInterval;
+  let generatedOTP = '';
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function sendOTP(){
+  const name  = document.getElementById('name-input').value.trim();
+  const phone = document.getElementById('phone-input').value.trim();
+
+  if (!name) {
+    showToast('⚠️ Please enter your full name');
+    return;
+  }
+
+  if (phone.length !== 10 || isNaN(phone)) {
+    showToast('⚠️ Please enter a valid 10-digit number');
+    return;
+  }
+
+  // ✅ Save student details to sessionStorage
+  sessionStorage.setItem('studentName',  name);
+  sessionStorage.setItem('studentPhone', '+91 ' + phone);
+
+  // Generate demo OTP
+  generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+  showToast('OTP sent: ' + generatedOTP + ' (demo)');
+
+  document.getElementById('phone-show').textContent = '+91 ' + phone;
+  document.getElementById('phone-step').style.display = 'none';
+  document.getElementById('otp-step').style.display   = 'block';
+
+  startTimer();
+}
+    
+  
+
+  function goBack() {
+    clearInterval(timerInterval);
+    document.getElementById('otp-step').style.display = 'none';
+    document.getElementById('phone-step').style.display = 'block';
+    document.querySelectorAll('.otp-box').forEach(b => b.value = '');
+  }
+
+  function otpMove(el, index) {
+    if (el.value.length === 1) {
+      const boxes = document.querySelectorAll('.otp-box');
+      if (index < 3) boxes[index + 1].focus();
+    }
+  }
+
+  function verifyOTP() {
+    const boxes = document.querySelectorAll('.otp-box');
+    const entered = Array.from(boxes).map(b => b.value).join('');
+    if (entered.length < 4) {
+      showToast('⚠️ Please enter all 4 digits');
+      return;
+    }
+    if (entered === generatedOTP) {
+      clearInterval(timerInterval);
+      document.getElementById('otp-step').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'block';
+      setTimeout(() => {
+        // Redirect to menu page
+        window.location.href = 'menu.html';
+      }, 2000);
+    } else {
+      showToast('❌ Incorrect OTP. Try again.');
+    }
+  }
+
+  function startTimer() {
+    let time = 30;
+    document.getElementById('countdown').textContent = time;
+    document.getElementById('resend-btn').classList.remove('active');
+    timerInterval = setInterval(() => {
+      time--;
+      document.getElementById('countdown').textContent = time;
+      if (time <= 0) {
+        clearInterval(timerInterval);
+        document.getElementById('resend-btn').classList.add('active');
+      }
+    }, 1000);
+  }
+
+  function resendOTP() {
+    generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+    showToast('New OTP sent: ' + generatedOTP + ' (demo)');
+    document.querySelectorAll('.otp-box').forEach(b => b.value = '');
+    startTimer();
+  }
+</script>
+</body>
+</html>

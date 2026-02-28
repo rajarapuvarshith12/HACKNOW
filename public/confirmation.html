@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quit-Queue | Order Confirmed</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-deep: #0a1628;
+      --blue-primary: #1a56db;
+      --blue-light: #3b82f6;
+      --blue-glow: #60a5fa;
+      --green: #10b981;
+      --green-light: #34d399;
+      --white: #ffffff;
+      --gray: #94a3b8;
+      --card-bg: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.1);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--blue-deep);
+      min-height: 100vh;
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* Confetti canvas */
+    #confetti-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px 32px;
+      background: rgba(10,22,40,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-wrap { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-glow));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+    .logo-text span { color: var(--blue-glow); }
+
+    .page-wrap {
+      position: relative;
+      z-index: 10;
+      max-width: 580px;
+      margin: 48px auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* SUCCESS CARD */
+    .success-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 24px;
+      padding: 40px 32px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(16,185,129,0.1);
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    @keyframes slideUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-icon-wrap {
+      width: 90px; height: 90px;
+      background: linear-gradient(135deg, var(--green), var(--green-light));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 40px;
+      box-shadow: 0 0 40px rgba(16,185,129,0.4);
+      animation: popIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .success-card h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .success-card p {
+      color: var(--gray);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ORDER ID BOX */
+    .order-id-box {
+      margin: 28px auto 0;
+      background: rgba(16,185,129,0.08);
+      border: 1px dashed rgba(16,185,129,0.4);
+      border-radius: 16px;
+      padding: 20px 24px;
+      max-width: 320px;
+    }
+
+    .order-id-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+
+    .order-id-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--green-light);
+      letter-spacing: 4px;
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { text-shadow: 0 0 10px rgba(52,211,153,0.3); }
+      50% { text-shadow: 0 0 25px rgba(52,211,153,0.7); }
+    }
+
+    .order-id-hint {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 8px;
+    }
+
+    .copy-btn {
+      margin-top: 12px;
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 8px;
+      padding: 8px 20px;
+      color: var(--green-light);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .copy-btn:hover { background: rgba(16,185,129,0.25); }
+
+    /* DETAILS CARD */
+    .details-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 28px;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .details-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row span:first-child { color: var(--gray); }
+    .detail-row span:last-child { font-weight: 500; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--green-light);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green-light);
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ORDER ITEMS */
+    .items-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 28px;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .order-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .order-item:last-child { border-bottom: none; }
+
+    .order-item-img {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #1a2a45;
+    }
+
+    .order-item-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; flex: 1; }
+    .order-item-qty { font-size: 12px; color: var(--gray); }
+    .order-item-price { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--blue-glow); }
+
+    /* STEPS CARD */
+    .steps-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 28px;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 10px 0;
+    }
+
+    .step-num {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-light));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .step-text { font-size: 14px; line-height: 1.5; padding-top: 4px; }
+    .step-text strong { color: var(--white); display: block; margin-bottom: 2px; }
+    .step-text span { color: var(--gray); font-size: 13px; }
+
+    /* ACTIONS */
+    .actions-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .action-btn {
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+      text-align: center;
+      display: block;
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-light));
+      color: var(--white);
+      box-shadow: 0 6px 20px rgba(26,86,219,0.4);
+    }
+    .action-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(26,86,219,0.5); }
+
+    .action-btn.secondary {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--white);
+    }
+    .action-btn.secondary:hover { border-color: var(--blue-light); transform: translateY(-2px); }
+
+    @media (max-width: 480px) {
+      .success-card { padding: 28px 20px; }
+      .actions-card { grid-template-columns: 1fr; }
+      .order-id-value { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo-wrap">
+    <div class="logo-icon">🍽️</div>
+    <div class="logo-text">Quit<span>Queue</span></div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- SUCCESS CARD -->
+  <div class="success-card">
+    <div class="success-icon-wrap">✓</div>
+    <h1>Order Confirmed! 🎉</h1>
+    <p>Your payment was successful. Your food is being prepared.<br>Show this Order ID at the counter to collect your food.</p>
+
+    <div class="order-id-box">
+      <div class="order-id-label">Your Order ID</div>
+      <div class="order-id-value" id="order-id-display">------</div>
+      <div class="order-id-hint">Show this to canteen staff</div>
+      <button class="copy-btn" onclick="copyOrderId()">📋 Copy Order ID</button>
+    </div>
+  </div>
+
+  <!-- ORDER DETAILS -->
+  <div class="details-card">
+    <div class="details-title">📋 Order Details</div>
+    <div class="detail-row">
+      <span>Order ID</span>
+      <span id="detail-order-id">—</span>
+    </div>
+    <div class="detail-row">
+      <span>Payment Method</span>
+      <span id="detail-payment">—</span>
+    </div>
+    <div class="detail-row">
+      <span>Amount Paid</span>
+      <span id="detail-amount">—</span>
+    </div>
+    <div class="detail-row">
+      <span>Order Time</span>
+      <span id="detail-time">—</span>
+    </div>
+    <div class="detail-row">
+      <span>Status</span>
+      <span class="status-badge"><span class="status-dot"></span> Confirmed & Paid</span>
+    </div>
+  </div>
+
+  <!-- ORDER ITEMS -->
+  <div class="items-card">
+    <div class="details-title">🍽️ Items Ordered</div>
+    <div id="order-items-list"></div>
+    <div style="display:flex; justify-content:space-between; padding-top:14px; font-family:'Syne',sans-serif; font-weight:700; font-size:16px;">
+      <span>Total Paid</span>
+      <span style="color:var(--blue-glow)" id="items-total">—</span>
+    </div>
+  </div>
+
+  <!-- WHAT TO DO NEXT -->
+  <div class="steps-card">
+    <div class="details-title">👣 What's Next?</div>
+    <div class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        <strong>Wait for preparation</strong>
+        <span>Canteen staff is now preparing your order</span>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        <strong>Head to the canteen</strong>
+        <span>Go to the food collection counter when ready</span>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        <strong>Show your Order ID</strong>
+        <span>Present your Order ID to the staff — no token needed!</span>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">4</div>
+      <div class="step-text">
+        <strong>Collect & enjoy 🍛</strong>
+        <span>Staff will hand over your food and mark it collected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions-card">
+    <a class="action-btn primary" href="menu.html">🍽️ Order More</a>
+    <button class="action-btn secondary" onclick="window.print()">🖨️ Print Receipt</button>
+  </div>
+
+</div>
+
+<script>
+  const allItems = [
+    { id: 1,  name: 'Veg Meals',       price: 60,  img: 'https://images.unsplash.com/photo-1567337710282-00832b415979?w=400&q=80' },
+    { id: 2,  name: 'Chicken Biryani', price: 90,  img: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&q=80' },
+    { id: 3,  name: 'Curd Rice',       price: 40,  img: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=400&q=80' },
+    { id: 4,  name: 'Veg Biryani',     price: 70,  img: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=400&q=80' },
+    { id: 5,  name: 'Samosa (2 pcs)',  price: 20,  img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&q=80' },
+    { id: 6,  name: 'Vada Pav',        price: 25,  img: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400&q=80' },
+    { id: 7,  name: 'Egg Roll',        price: 35,  img: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&q=80' },
+    { id: 8,  name: 'French Fries',    price: 40,  img: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80' },
+    { id: 9,  name: 'Masala Chai',     price: 15,  img: 'https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400&q=80' },
+    { id: 10, name: 'Cold Coffee',     price: 45,  img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80' },
+    { id: 11, name: 'Fresh Lime Soda', price: 30,  img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=80' },
+    { id: 12, name: 'Mango Juice',     price: 35,  img: 'https://images.unsplash.com/photo-1546171753-97d7676e4602?w=400&q=80' },
+    { id: 13, name: 'Chapati (3 pcs)', price: 20,  img: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&q=80' },
+    { id: 14, name: 'Paratha + Curd',  price: 35,  img: 'https://images.unsplash.com/photo-1605197788044-36d90d4da9c5?w=400&q=80' },
+    { id: 15, name: 'Puri Bhaji',      price: 40,  img: 'https://images.unsplash.com/photo-1606756790138-261d2b21cd75?w=400&q=80' },
+    { id: 16, name: 'Naan',            price: 25,  img: 'https://images.unsplash.com/photo-1601050690117-94f5f7eb6b05?w=400&q=80' },
+  ];
+
+  // ── Load session data ──────────────────────────────
+  const orderId      = sessionStorage.getItem('orderId')        || 'QQ' + Date.now().toString().slice(-6);
+  const payMethod    = sessionStorage.getItem('paymentMethod')  || 'upi';
+  const grandTotal   = sessionStorage.getItem('grandTotal')     || '0';
+  const cartRaw      = sessionStorage.getItem('cart');
+  const cart         = cartRaw ? JSON.parse(cartRaw) : {};
+  const studentName  = sessionStorage.getItem('studentName')    || 'Student';
+  const studentPhone = sessionStorage.getItem('studentPhone')   || 'N/A';
+
+  const payLabels = {
+    upi:  'UPI Payment',
+    qr:   'QR Code Scan',
+    card: 'Debit/Credit Card',
+    cash: 'Pay at Counter'
+  };
+
+  const now     = new Date();
+  const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+                + ', ' + now.toLocaleDateString('en-IN');
+
+  // ── Fill UI ────────────────────────────────────────
+  document.getElementById('order-id-display').textContent = orderId;
+  document.getElementById('detail-order-id').textContent  = orderId;
+  document.getElementById('detail-payment').textContent   = payLabels[payMethod] || payMethod;
+  document.getElementById('detail-amount').textContent    = '₹' + grandTotal;
+  document.getElementById('detail-time').textContent      = timeStr;
+  document.getElementById('items-total').textContent      = '₹' + grandTotal;
+
+  // ── Build items list ───────────────────────────────
+  const itemsList    = document.getElementById('order-items-list');
+  const orderedItems = [];
+
+  Object.keys(cart).forEach(id => {
+    const item = allItems.find(i => i.id === parseInt(id));
+    if (!item) return;
+    const qty = cart[id];
+    orderedItems.push({ id: item.id, name: item.name, price: item.price, qty });
+    const div = document.createElement('div');
+    div.className = 'order-item';
+    div.innerHTML = `
+      <img class="order-item-img" src="${item.img}" alt="${item.name}" />
+      <div class="order-item-name">${item.name}</div>
+      <div class="order-item-qty">× ${qty}</div>
+      <div class="order-item-price">₹${item.price * qty}</div>`;
+    itemsList.appendChild(div);
+  });
+
+  // ── Save order to Firebase via backend ─────────────
+    async function saveOrderToBackend() {
+  try {
+    const orderId      = sessionStorage.getItem('orderId');
+    const payMethod    = sessionStorage.getItem('paymentMethod') || 'upi';
+    const grandTotal   = sessionStorage.getItem('grandTotal')    || '0';
+    const cartRaw      = sessionStorage.getItem('cart');
+    const studentName  = sessionStorage.getItem('studentName')   || 'Student';
+    const studentPhone = sessionStorage.getItem('studentPhone')  || 'N/A';
+
+    // ✅ Parse cart BEFORE clearing it
+    const cart = cartRaw ? JSON.parse(cartRaw) : {};
+
+    const payLabels = {
+      upi:  'UPI Payment',
+      qr:   'QR Code Scan',
+      card: 'Debit/Credit Card',
+      cash: 'Pay at Counter'
+    };
+
+    const allItems = [
+      { id:1,  name:'Veg Meals',       price:60  },
+      { id:2,  name:'Chicken Biryani', price:90  },
+      { id:3,  name:'Curd Rice',       price:40  },
+      { id:4,  name:'Veg Biryani',     price:70  },
+      { id:5,  name:'Samosa (2 pcs)',  price:20  },
+      { id:6,  name:'Vada Pav',        price:25  },
+      { id:7,  name:'Egg Roll',        price:35  },
+      { id:8,  name:'French Fries',    price:40  },
+      { id:9,  name:'Masala Chai',     price:15  },
+      { id:10, name:'Cold Coffee',     price:45  },
+      { id:11, name:'Fresh Lime Soda', price:30  },
+      { id:12, name:'Mango Juice',     price:35  },
+      { id:13, name:'Chapati (3 pcs)', price:20  },
+      { id:14, name:'Paratha + Curd',  price:35  },
+      { id:15, name:'Puri Bhaji',      price:40  },
+      { id:16, name:'Naan',            price:25  },
+    ];
+
+    // ✅ Build items array from cart
+    const orderedItems = [];
+    Object.keys(cart).forEach(id => {
+      const item = allItems.find(i => i.id === parseInt(id));
+      if (!item) return;
+      orderedItems.push({
+        id:    item.id,
+        name:  item.name,
+        price: item.price,
+        qty:   parseInt(cart[id])
+      });
+    });
+
+    console.log('📤 Sending order:', {
+      orderId, studentName, studentPhone,
+      items: orderedItems, total: grandTotal
+    });
+
+    const response = await fetch('/api/orders', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId,
+        studentName,
+        studentPhone,
+        items:         orderedItems,
+        total:         parseInt(grandTotal),
+        paymentMethod: payLabels[payMethod] || 'UPI Payment'
+      })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      console.log('✅ Order saved with items:', orderedItems);
+    } else {
+      console.error('❌ Failed:', data.error);
+    }
+
+  } catch (err) {
+    console.error('❌ Error:', err.message);
+  }
+}
+  
+
+  saveOrderToBackend();
+
+  // ── Copy Order ID ──────────────────────────────────
+  function copyOrderId() {
+    navigator.clipboard.writeText(orderId).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy Order ID', 2000);
+    });
+  }
+
+  // ── Confetti ───────────────────────────────────────
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const pieces = Array.from({ length: 120 }, () => ({
+    x:       Math.random() * canvas.width,
+    y:       Math.random() * canvas.height - canvas.height,
+    w:       Math.random() * 10 + 5,
+    h:       Math.random() * 6 + 3,
+    color:   ['#1a56db','#60a5fa','#10b981','#34d399','#fbbf24','#f472b6'][Math.floor(Math.random()*6)],
+    speed:   Math.random() * 3 + 1,
+    angle:   Math.random() * 360,
+    spin:    Math.random() * 4 - 2,
+    opacity: Math.random() * 0.8 + 0.2
+  }));
+
+  let frame = 0;
+  function drawConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (frame > 200) return;
+    pieces.forEach(p => {
+      ctx.save();
+      ctx.globalAlpha = p.opacity * (1 - frame / 200);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+      p.y     += p.speed;
+      p.angle += p.spin;
+      if (p.y > canvas.height) p.y = -10;
+    });
+    frame++;
+    requestAnimationFrame(drawConfetti);
+  }
+  drawConfetti();
+async function saveOrderToBackend() {
+  try {
+    // ✅ Read ALL session data FIRST before anything is cleared
+    const orderId      = sessionStorage.getItem('orderId');
+    const payMethod    = sessionStorage.getItem('paymentMethod') || 'upi';
+    const grandTotal   = sessionStorage.getItem('grandTotal')    || '0';
+    const studentName  = sessionStorage.getItem('studentName')   || 'Student';
+    const studentPhone = sessionStorage.getItem('studentPhone')  || 'N/A';
+
+    // ✅ Read cart BEFORE removing it
+    const cartRaw = sessionStorage.getItem('cart');
+    const cart    = cartRaw ? JSON.parse(cartRaw) : {};
+
+    console.log('🛒 Cart contents:', cart);
+
+    const payLabels = {
+      upi:  'UPI Payment',
+      qr:   'QR Code Scan',
+      card: 'Debit/Credit Card',
+      cash: 'Pay at Counter'
+    };
+
+    const allItems = [
+      { id:1,  name:'Veg Meals',       price:60  },
+      { id:2,  name:'Chicken Biryani', price:90  },
+      { id:3,  name:'Curd Rice',       price:40  },
+      { id:4,  name:'Veg Biryani',     price:70  },
+      { id:5,  name:'Samosa (2 pcs)',  price:20  },
+      { id:6,  name:'Vada Pav',        price:25  },
+      { id:7,  name:'Egg Roll',        price:35  },
+      { id:8,  name:'French Fries',    price:40  },
+      { id:9,  name:'Masala Chai',     price:15  },
+      { id:10, name:'Cold Coffee',     price:45  },
+      { id:11, name:'Fresh Lime Soda', price:30  },
+      { id:12, name:'Mango Juice',     price:35  },
+      { id:13, name:'Chapati (3 pcs)', price:20  },
+      { id:14, name:'Paratha + Curd',  price:35  },
+      { id:15, name:'Puri Bhaji',      price:40  },
+      { id:16, name:'Naan',            price:25  },
+    ];
+
+    // ✅ Build items from cart
+    const orderedItems = [];
+    Object.keys(cart).forEach(id => {
+      const item = allItems.find(i => i.id === parseInt(id));
+      if (!item) return;
+      orderedItems.push({
+        id:    item.id,
+        name:  item.name,
+        price: item.price,
+        qty:   parseInt(cart[id])
+      });
+    });
+
+    console.log('📦 Items to save:', orderedItems);
+
+    if (!orderId) {
+      console.error('❌ No orderId found in session!');
+      return;
+    }
+
+    if (orderedItems.length === 0) {
+      console.error('❌ No items found in cart!');
+      return;
+    }
+
+    const response = await fetch('/api/orders', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId,
+        studentName,
+        studentPhone,
+        items:         orderedItems,
+        total:         parseInt(grandTotal),
+        paymentMethod: payLabels[payMethod] || 'UPI Payment'
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      console.log('✅ Order saved with', orderedItems.length, 'items!');
+      // ✅ Only remove cart AFTER successful save
+      sessionStorage.removeItem('cart');
+    } else {
+      console.error('❌ Save failed:', data.error);
+    }
+
+  } catch (err) {
+    console.error('❌ Error saving order:', err.message);
+  }
+}
+
+saveOrderToBackend();
+</script>
+</body>
+</html>

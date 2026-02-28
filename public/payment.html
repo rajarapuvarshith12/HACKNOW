@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quit-Queue | Payment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-deep: #0a1628;
+      --blue-primary: #1a56db;
+      --blue-light: #3b82f6;
+      --blue-glow: #60a5fa;
+      --white: #ffffff;
+      --gray: #94a3b8;
+      --card-bg: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.1);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--blue-deep);
+      min-height: 100vh;
+      color: var(--white);
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 32px;
+      background: rgba(10,22,40,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-wrap { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-glow));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+    .logo-text span { color: var(--blue-glow); }
+
+    .back-link {
+      color: var(--gray);
+      font-size: 13px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--white); }
+
+    .page-wrap {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .page-wrap { grid-template-columns: 1fr; }
+      nav { padding: 14px 16px; }
+    }
+
+    /* CARD */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ORDER SUMMARY */
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .order-item:last-of-type { border-bottom: none; }
+
+    .order-item-left { display: flex; align-items: center; gap: 12px; }
+
+    .order-item-img {
+      width: 48px; height: 48px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #1a2a45;
+    }
+
+    .order-item-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; }
+    .order-item-qty { font-size: 12px; color: var(--gray); margin-top: 2px; }
+    .order-item-price { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--blue-glow); }
+
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+
+    .summary-row.total {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      margin-top: 12px;
+    }
+
+    .summary-row.total span:last-child { color: var(--blue-glow); }
+
+    /* PAYMENT METHODS */
+    .pay-methods {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .pay-option {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: var(--card-bg);
+    }
+
+    .pay-option:hover { border-color: var(--blue-light); background: rgba(59,130,246,0.05); }
+
+    .pay-option.selected {
+      border-color: var(--blue-light);
+      background: rgba(59,130,246,0.1);
+      box-shadow: 0 0 0 1px var(--blue-light);
+    }
+
+    .pay-radio {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--gray);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.2s;
+    }
+
+    .pay-option.selected .pay-radio {
+      border-color: var(--blue-light);
+    }
+
+    .pay-radio-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--blue-light);
+      display: none;
+    }
+
+    .pay-option.selected .pay-radio-dot { display: block; }
+
+    .pay-icon { font-size: 24px; }
+
+    .pay-label { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; }
+    .pay-sublabel { font-size: 12px; color: var(--gray); margin-top: 2px; }
+
+    /* UPI INPUT */
+    .upi-input-wrap { display: none; margin-top: 12px; }
+    .upi-input-wrap.show { display: block; animation: fadeIn 0.3s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .upi-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .upi-input:focus { border-color: var(--blue-light); }
+    .upi-input::placeholder { color: rgba(255,255,255,0.25); }
+
+    /* PAY BUTTON */
+    .pay-btn {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-light));
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 8px 24px rgba(26,86,219,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .pay-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(26,86,219,0.5); }
+    .pay-btn:active { transform: translateY(0); }
+    .pay-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* SECURE BADGE */
+    .secure-note {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    /* PROCESSING OVERLAY */
+    .processing-overlay {
+      position: fixed; inset: 0;
+      background: rgba(10,22,40,0.95);
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+    .processing-overlay.show { display: flex; animation: fadeIn 0.3s ease; }
+
+    .spinner {
+      width: 60px; height: 60px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--blue-light);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .processing-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+    }
+
+    .processing-sub { font-size: 13px; color: var(--gray); }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--gray);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state a { color: var(--blue-glow); text-decoration: none; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+<!-- PROCESSING OVERLAY -->
+<div class="processing-overlay" id="processing-overlay">
+  <div class="spinner"></div>
+  <div class="processing-text">Processing Payment...</div>
+  <div class="processing-sub">Please do not close this window</div>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="logo-wrap">
+    <div class="logo-icon">🍽️</div>
+    <div class="logo-text">Quit<span>Queue</span></div>
+  </div>
+  <a class="back-link" href="menu.html">← Back to Menu</a>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- LEFT: PAYMENT METHOD -->
+  <div>
+    <div class="card">
+      <div class="card-title">💳 Choose Payment Method</div>
+
+      <div class="pay-methods">
+
+        <!-- UPI -->
+        <div class="pay-option selected" id="opt-upi" onclick="selectMethod('upi')">
+          <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+          <div class="pay-icon">📱</div>
+          <div>
+            <div class="pay-label">UPI Payment</div>
+            <div class="pay-sublabel">GPay, PhonePe, Paytm, BHIM</div>
+          </div>
+        </div>
+        <div class="upi-input-wrap show" id="upi-input-wrap">
+          <input class="upi-input" type="text" id="upi-id" placeholder="Enter UPI ID (e.g. name@upi)" />
+        </div>
+
+        <!-- QR Code -->
+        <div class="pay-option" id="opt-qr" onclick="selectMethod('qr')">
+          <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+          <div class="pay-icon">🔲</div>
+          <div>
+            <div class="pay-label">Scan QR Code</div>
+            <div class="pay-sublabel">Scan & pay from any UPI app</div>
+          </div>
+        </div>
+
+        <!-- Card -->
+        <div class="pay-option" id="opt-card" onclick="selectMethod('card')">
+          <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+          <div class="pay-icon">💳</div>
+          <div>
+            <div class="pay-label">Debit / Credit Card</div>
+            <div class="pay-sublabel">Visa, Mastercard, Rupay</div>
+          </div>
+        </div>
+
+        <!-- Cash -->
+        <div class="pay-option" id="opt-cash" onclick="selectMethod('cash')">
+          <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+          <div class="pay-icon">💵</div>
+          <div>
+            <div class="pay-label">Pay at Counter</div>
+            <div class="pay-sublabel">Reserve order, pay when collecting</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- QR Display -->
+      <div id="qr-section" style="display:none; text-align:center; padding: 16px 0; animation: fadeIn 0.3s ease;">
+        <div style="background: white; border-radius: 16px; padding: 16px; display: inline-block; margin-bottom: 12px;">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=quitqueue@upi&pn=QuitQueue&am=AMOUNT&cu=INR" id="qr-img" width="180" height="180" alt="QR Code"/>
+        </div>
+        <p style="font-size:13px; color: var(--gray);">Scan with any UPI app to pay</p>
+        <p style="font-size:12px; color: var(--gray); margin-top:4px;">UPI ID: <strong style="color:var(--white)">quitqueue@upi</strong></p>
+      </div>
+
+      <!-- Card Fields -->
+      <div id="card-section" style="display:none; animation: fadeIn 0.3s ease;">
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <input class="upi-input" type="text" placeholder="Card Number" maxlength="19" oninput="formatCard(this)" />
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <input class="upi-input" type="text" placeholder="MM / YY" maxlength="7" oninput="formatExpiry(this)" />
+            <input class="upi-input" type="password" placeholder="CVV" maxlength="3" />
+          </div>
+          <input class="upi-input" type="text" placeholder="Cardholder Name" />
+        </div>
+      </div>
+
+      <button class="pay-btn" id="pay-btn" onclick="processPayment()">
+        Pay ₹<span id="pay-amount">0</span>
+      </button>
+
+      <div class="secure-note">
+        🔒 Secured & encrypted payment
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: ORDER SUMMARY -->
+  <div>
+    <div class="card">
+      <div class="card-title">🧾 Order Summary</div>
+      <div id="order-summary-items"></div>
+      <div class="divider"></div>
+      <div class="summary-row"><span>Subtotal</span><span id="subtotal">₹0</span></div>
+      <div class="summary-row"><span>Platform Fee</span><span>₹2</span></div>
+      <div class="summary-row"><span>GST (5%)</span><span id="gst-amt">₹0</span></div>
+      <div class="divider"></div>
+      <div class="summary-row total"><span>Total</span><span id="grand-total">₹0</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Food data (same as menu.html)
+  const allItems = [
+    { id: 1,  name: 'Veg Meals',       price: 60,  img: 'https://images.unsplash.com/photo-1567337710282-00832b415979?w=400&q=80' },
+    { id: 2,  name: 'Chicken Biryani', price: 90,  img: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&q=80' },
+    { id: 3,  name: 'Curd Rice',       price: 40,  img: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=400&q=80' },
+    { id: 4,  name: 'Veg Biryani',     price: 70,  img: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=400&q=80' },
+    { id: 5,  name: 'Samosa (2 pcs)',  price: 20,  img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&q=80' },
+    { id: 6,  name: 'Vada Pav',        price: 25,  img: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400&q=80' },
+    { id: 7,  name: 'Egg Roll',        price: 35,  img: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&q=80' },
+    { id: 8,  name: 'French Fries',    price: 40,  img: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&q=80' },
+    { id: 9,  name: 'Masala Chai',     price: 15,  img: 'https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400&q=80' },
+    { id: 10, name: 'Cold Coffee',     price: 45,  img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80' },
+    { id: 11, name: 'Fresh Lime Soda', price: 30,  img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=80' },
+    { id: 12, name: 'Mango Juice',     price: 35,  img: 'https://images.unsplash.com/photo-1546171753-97d7676e4602?w=400&q=80' },
+    { id: 13, name: 'Chapati (3 pcs)', price: 20,  img: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&q=80' },
+    { id: 14, name: 'Paratha + Curd',  price: 35,  img: 'https://images.unsplash.com/photo-1605197788044-36d90d4da9c5?w=400&q=80' },
+    { id: 15, name: 'Puri Bhaji',      price: 40,  img: 'https://images.unsplash.com/photo-1606756790138-261d2b21cd75?w=400&q=80' },
+    { id: 16, name: 'Naan',            price: 25,  img: 'https://images.unsplash.com/photo-1601050690117-94f5f7eb6b05?w=400&q=80' },
+  ];
+
+  let selectedMethod = 'upi';
+  let grandTotal = 0;
+
+  // Load cart from sessionStorage
+  const cartRaw = sessionStorage.getItem('cart');
+  const cart = cartRaw ? JSON.parse(cartRaw) : {};
+
+  function loadOrderSummary() {
+    const container = document.getElementById('order-summary-items');
+    const keys = Object.keys(cart);
+
+    if (keys.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="icon">🛒</div><p>No items in cart.<br><a href="menu.html">Go back to menu</a></p></div>`;
+      document.getElementById('pay-btn').disabled = true;
+      return;
+    }
+
+    let subtotal = 0;
+    container.innerHTML = '';
+
+    keys.forEach(id => {
+      const item = allItems.find(i => i.id === parseInt(id));
+      if (!item) return;
+      const qty = cart[id];
+      const itemTotal = item.price * qty;
+      subtotal += itemTotal;
+
+      const div = document.createElement('div');
+      div.className = 'order-item';
+      div.innerHTML = `
+        <div class="order-item-left">
+          <img class="order-item-img" src="${item.img}" alt="${item.name}" />
+          <div>
+            <div class="order-item-name">${item.name}</div>
+            <div class="order-item-qty">Qty: ${qty}</div>
+          </div>
+        </div>
+        <div class="order-item-price">₹${itemTotal}</div>`;
+      container.appendChild(div);
+    });
+
+    const gst = Math.round(subtotal * 0.05);
+    grandTotal = subtotal + 2 + gst;
+
+    document.getElementById('subtotal').textContent = '₹' + subtotal;
+    document.getElementById('gst-amt').textContent = '₹' + gst;
+    document.getElementById('grand-total').textContent = '₹' + grandTotal;
+    document.getElementById('pay-amount').textContent = grandTotal;
+
+    // Update QR amount
+    document.getElementById('qr-img').src =
+      `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=quitqueue@upi%26pn=QuitQueue%26am=${grandTotal}%26cu=INR`;
+  }
+
+  function selectMethod(method) {
+    selectedMethod = method;
+    ['upi', 'qr', 'card', 'cash'].forEach(m => {
+      document.getElementById(`opt-${m}`).classList.remove('selected');
+    });
+    document.getElementById(`opt-${method}`).classList.add('selected');
+
+    // Hide all dynamic sections
+    document.getElementById('upi-input-wrap').classList.remove('show');
+    document.getElementById('qr-section').style.display = 'none';
+    document.getElementById('card-section').style.display = 'none';
+
+    if (method === 'upi') document.getElementById('upi-input-wrap').classList.add('show');
+    if (method === 'qr') document.getElementById('qr-section').style.display = 'block';
+    if (method === 'card') document.getElementById('card-section').style.display = 'block';
+
+    // Update button text
+    const btn = document.getElementById('pay-btn');
+    if (method === 'cash') {
+      btn.textContent = `Reserve Order (Pay at Counter)`;
+    } else {
+      btn.innerHTML = `Pay ₹<span id="pay-amount">${grandTotal}</span>`;
+    }
+  }
+
+  function formatCard(el) {
+    let v = el.value.replace(/\D/g, '').substring(0, 16);
+    el.value = v.replace(/(.{4})/g, '$1 ').trim();
+  }
+
+  function formatExpiry(el) {
+    let v = el.value.replace(/\D/g, '').substring(0, 4);
+    if (v.length >= 2) v = v.substring(0, 2) + ' / ' + v.substring(2);
+    el.value = v;
+  }
+
+  function processPayment() {
+    // Validate UPI
+    if (selectedMethod === 'upi') {
+      const upiId = document.getElementById('upi-id').value.trim();
+      if (!upiId.includes('@')) {
+        alert('Please enter a valid UPI ID (e.g. name@upi)');
+        return;
+      }
+    }
+
+    // Show processing
+    document.getElementById('processing-overlay').classList.add('show');
+
+    // Simulate payment processing (2.5 seconds)
+    setTimeout(() => {
+      // Generate Order ID
+      const orderId = 'QQ' + Date.now().toString().slice(-6);
+      sessionStorage.setItem('orderId', orderId);
+      sessionStorage.setItem('paymentMethod', selectedMethod);
+      sessionStorage.setItem('grandTotal', grandTotal);
+
+      // Redirect to confirmation page
+      window.location.href = 'confirmation.html';
+    }, 2500);
+  }
+
+  loadOrderSummary();
+</script>
+</body>
+</html>

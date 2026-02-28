@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quit-Queue | Staff Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-deep: #060e1e;
+      --blue-mid: #0a1628;
+      --blue-primary: #1a56db;
+      --blue-light: #3b82f6;
+      --blue-glow: #60a5fa;
+      --orange: #f97316;
+      --orange-light: #fb923c;
+      --white: #ffffff;
+      --gray: #64748b;
+      --gray-light: #94a3b8;
+      --card-bg: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.08);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--blue-deep);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      overflow: hidden;
+    }
+
+    /* LEFT PANEL */
+    .left-panel {
+      flex: 1;
+      background: linear-gradient(145deg, #0a1a35 0%, #0d2450 50%, #091830 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(249,115,22,0.12) 0%, transparent 70%);
+      top: -100px; right: -100px;
+      border-radius: 50%;
+    }
+
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(26,86,219,0.15) 0%, transparent 70%);
+      bottom: -100px; left: -50px;
+      border-radius: 50%;
+    }
+
+    .panel-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 64px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .panel-logo-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 32px rgba(249,115,22,0.35);
+    }
+
+    .panel-logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--white);
+    }
+    .panel-logo-text span { color: var(--orange-light); }
+
+    .panel-content { position: relative; z-index: 1; max-width: 420px; }
+
+    .panel-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(249,115,22,0.12);
+      border: 1px solid rgba(249,115,22,0.25);
+      color: var(--orange-light);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+
+    .panel-tag-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--orange-light);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .panel-heading {
+      font-family: 'Syne', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+
+    .panel-heading span { color: var(--orange-light); }
+
+    .panel-desc {
+      color: var(--gray-light);
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+    }
+
+    .panel-features { display: flex; flex-direction: column; gap: 16px; }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .feature-icon {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .feature-text strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 2px;
+    }
+
+    .feature-text span { font-size: 12px; color: var(--gray); }
+
+    /* Decorative grid */
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* RIGHT PANEL - Login Form */
+    .right-panel {
+      width: 480px;
+      background: #080f1e;
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 56px 48px;
+      position: relative;
+      overflow-y: auto;
+    }
+
+    .form-header { margin-bottom: 36px; }
+
+    .form-header h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+
+    .form-header p { color: var(--gray); font-size: 14px; }
+
+    /* ROLE SELECTOR - single option styled as info card */
+    .role-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: rgba(249,115,22,0.06);
+      border: 1px solid rgba(249,115,22,0.2);
+      border-radius: 14px;
+      margin-bottom: 24px;
+    }
+
+    .role-card-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(249,115,22,0.3);
+    }
+
+    .role-card-info { flex: 1; }
+    .role-card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 2px;
+    }
+    .role-card-sub { font-size: 12px; color: var(--gray-light); }
+
+    .role-card-check {
+      width: 22px; height: 22px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      color: white;
+      font-weight: 700;
+    }
+
+    /* FORM FIELDS */
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--gray-light);
+      margin-bottom: 8px;
+    }
+
+    .input-wrap { position: relative; }
+
+    .input-icon {
+      position: absolute;
+      left: 15px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray);
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    input {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 16px 13px 44px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.18); font-size: 14px; }
+
+    input:focus {
+      border-color: rgba(249,115,22,0.5);
+      box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .show-pwd {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--gray);
+      cursor: pointer; font-size: 15px;
+      transition: color 0.2s;
+      padding: 4px;
+    }
+    .show-pwd:hover { color: var(--white); }
+
+    /* REMEMBER + FORGOT */
+    .form-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      margin-top: -6px;
+    }
+
+    .remember {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .remember input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--orange);
+      padding: 0;
+      border-radius: 4px;
+    }
+
+    .remember span { font-size: 13px; color: var(--gray-light); }
+    .forgot { font-size: 13px; color: var(--orange-light); text-decoration: none; transition: opacity 0.2s; }
+    .forgot:hover { opacity: 0.8; }
+
+    /* LOGIN BUTTON */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      box-shadow: 0 8px 24px rgba(249,115,22,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      letter-spacing: 0.3px;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 32px rgba(249,115,22,0.45); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-arrow {
+      transition: transform 0.2s;
+    }
+    .btn:hover .btn-arrow { transform: translateX(4px); }
+
+    /* SPINNER */
+    .spinner {
+      display: none;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ERROR */
+    .error-msg {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171;
+      font-size: 13px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+      display: none;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* DIVIDER */
+    .form-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 24px 0;
+    }
+    .form-divider::before, .form-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .form-divider span { font-size: 12px; color: var(--gray); white-space: nowrap; }
+
+    .student-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--gray-light);
+      font-size: 14px;
+      text-decoration: none;
+      transition: all 0.2s;
+      background: var(--card-bg);
+    }
+    .student-link:hover { border-color: var(--blue-glow); color: var(--white); background: rgba(96,165,250,0.05); }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      top: 24px; left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #1a2a45;
+      border: 1px solid rgba(249,115,22,0.3);
+      color: white;
+      padding: 14px 28px;
+      border-radius: 50px;
+      font-size: 14px;
+      z-index: 500;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(10px);
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Credentials hint */
+    .creds-hint {
+      margin-top: 20px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 12px;
+      color: var(--gray);
+      line-height: 1.8;
+    }
+    .creds-hint strong { color: var(--gray-light); display: block; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .creds-hint code {
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: var(--orange-light);
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .left-panel { display: none; }
+      .right-panel { width: 100%; padding: 40px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- LEFT PANEL -->
+<div class="left-panel">
+  <div class="grid-overlay"></div>
+
+  <div class="panel-logo">
+    <div class="panel-logo-icon">🍽️</div>
+    <div class="panel-logo-text">Quit<span>Queue</span></div>
+  </div>
+
+  <div class="panel-content">
+    <div class="panel-tag">
+      <span class="panel-tag-dot"></span>
+      Staff Portal
+    </div>
+    <h2 class="panel-heading">Manage Orders<br>in <span>Real Time</span></h2>
+    <p class="panel-desc">A powerful dashboard to view, prepare and fulfill student food orders instantly — no paper, no chaos.</p>
+
+    <div class="panel-features">
+      <div class="feature-item">
+        <div class="feature-icon">📋</div>
+        <div class="feature-text">
+          <strong>Live Order Tracking</strong>
+          <span>See new orders the moment they're placed</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🍽️</div>
+        <div class="feature-text">
+          <strong>Menu Control</strong>
+          <span>Mark items unavailable when stock runs out</span>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">✅</div>
+        <div class="feature-text">
+          <strong>Order ID Verification</strong>
+          <span>Verify & mark orders collected in one click</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+
+  <div class="form-header">
+    <h2>Welcome back 👋</h2>
+    <p>Sign in to access the canteen staff dashboard</p>
+  </div>
+
+  <!-- ROLE CARD (single, no selection needed) -->
+  <div class="role-card">
+    <div class="role-card-icon">🧑‍💼</div>
+    <div class="role-card-info">
+      <div class="role-card-title">Counter Staff</div>
+      <div class="role-card-sub">Manage orders, verify & collect</div>
+    </div>
+    <div class="role-card-check">✓</div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-msg" id="error-msg"></div>
+
+  <!-- USERNAME -->
+  <div class="form-group">
+    <label>Username</label>
+    <div class="input-wrap">
+      <span class="input-icon">👤</span>
+      <input type="text" id="username" placeholder="Enter your username" autocomplete="username" />
+    </div>
+  </div>
+
+  <!-- PASSWORD -->
+  <div class="form-group">
+    <label>Password</label>
+    <div class="input-wrap">
+      <span class="input-icon">🔒</span>
+      <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+      <button class="show-pwd" onclick="togglePassword()" id="show-pwd-btn">👁️</button>
+    </div>
+  </div>
+
+  <!-- REMEMBER + FORGOT -->
+  <div class="form-meta">
+    <label class="remember">
+      <input type="checkbox" id="remember" />
+      <span>Remember me</span>
+    </label>
+    <a href="#" class="forgot">Forgot password?</a>
+  </div>
+
+  <!-- LOGIN BUTTON -->
+  <button class="btn" id="login-btn" onclick="staffLogin()">
+    <span id="btn-text">Sign In to Dashboard</span>
+    <span class="btn-arrow" id="btn-arrow">→</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+
+  <div class="form-divider"><span>or</span></div>
+
+  <a href="login.html" class="student-link">🎓 Go to Student Login</a>
+
+  <!-- DEMO CREDENTIALS HINT -->
+  <div class="creds-hint">
+    <strong>Demo Credentials</strong>
+    Username: <code>counter1</code> &nbsp;|&nbsp; Password: <code>staff123</code>
+  </div>
+
+</div>
+
+<script>
+  const staffCredentials = [
+    { username: 'counter1', password: 'staff123', name: 'Counter Staff' },
+    { username: 'admin',    password: 'admin123', name: 'Admin'         },
+  ];
+
+  function togglePassword() {
+    const input = document.getElementById('password');
+    const btn = document.getElementById('show-pwd-btn');
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.textContent = input.type === 'password' ? '👁️' : '🙈';
+  }
+
+  function setLoading(state) {
+    const btn = document.getElementById('login-btn');
+    const btnText = document.getElementById('btn-text');
+    const btnArrow = document.getElementById('btn-arrow');
+    const spinner = document.getElementById('spinner');
+
+    if (state) {
+      btnText.textContent = 'Signing in...';
+      btnArrow.style.display = 'none';
+      spinner.style.display = 'block';
+      btn.style.opacity = '0.85';
+      btn.style.pointerEvents = 'none';
+    } else {
+      btnText.textContent = 'Sign In to Dashboard';
+      btnArrow.style.display = 'inline';
+      spinner.style.display = 'none';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'all';
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function hideError() {
+    document.getElementById('error-msg').style.display = 'none';
+  }
+
+  function staffLogin() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    hideError();
+
+    if (!username || !password) {
+      showError('⚠️ Please enter both username and password.');
+      return;
+    }
+
+    setLoading(true);
+
+    setTimeout(() => {
+      const staff = staffCredentials.find(
+        s => s.username === username && s.password === password
+      );
+
+      if (staff) {
+        sessionStorage.setItem('staffName', staff.name);
+        sessionStorage.setItem('staffUsername', staff.username);
+
+        showToast('✅ Welcome, ' + staff.name + '!');
+        setTimeout(() => {
+          window.location.href = 'staff-dashboard.html'; 
+        }, 1000);
+      } else {
+        setLoading(false);
+        showError('❌ Invalid username or password. Please try again.');
+      }
+    }, 1400);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerHTML = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') staffLogin();
+  });
+
+  // Pre-fill if remembered
+  if (localStorage.getItem('staffUsername')) {
+    document.getElementById('username').value = localStorage.getItem('staffUsername');
+    document.getElementById('remember').checked = true;
+  }
+</script>
+</body>
+</html>
