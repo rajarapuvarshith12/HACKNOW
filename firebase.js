@@ -8,11 +8,16 @@ if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   const credPath = path.resolve(process.env.GOOGLE_APPLICATION_CREDENTIALS);
   serviceAccount = require(credPath);
 } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-  // JSON string stored in an env var
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
   try {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  } catch (err) {
-    throw new Error('Invalid JSON in FIREBASE_SERVICE_ACCOUNT');
+    serviceAccount = JSON.parse(raw);
+  } catch {
+    // try base64 decoded
+    try {
+      serviceAccount = JSON.parse(Buffer.from(raw, 'base64').toString());
+    } catch (err) {
+      throw new Error('Invalid JSON in FIREBASE_SERVICE_ACCOUNT');
+    }
   }
 } else {
   throw new Error('Firebase service account credentials not provided.\n' +
