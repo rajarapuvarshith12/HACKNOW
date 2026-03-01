@@ -2,7 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
-const { db } = require('./firebase');
+let db;
+try {
+  ({ db } = require('./firebase'));
+} catch (err) {
+  console.error('⚠️  Failed to load Firebase configuration:', err.message);
+  console.error('   Make sure you have set GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_SERVICE_ACCOUNT.');
+  process.exit(1);
+}
 
 const app = express();
 app.use(cors());
