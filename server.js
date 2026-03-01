@@ -108,7 +108,9 @@ app.patch('/api/menu/:itemId', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Quit-Queue server running at http://localhost:${PORT}`);
